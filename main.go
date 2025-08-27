@@ -457,6 +457,8 @@ func refreshAccessToken(rt string) (string, error) {
 
 	log.Printf("newAccessToken: %s", newAccessToken)
 
+	_ = fetchModelsFromUpstream(newAccessToken)
+
 	accessTokens.Set(rt, AccessTokenInfo{
 		AccessToken: newAccessToken,
 		ExpiresAt:   expiresAt,
@@ -470,7 +472,7 @@ func getAccessToken(rt string) (string, error) {
 	tokenInfo, ok := accessTokens.Get(rt)
 	currentTime := time.Now().Unix()
 
-	if ok && tokenInfo.ExpiresAt > currentTime+15660 {
+	if ok && tokenInfo.ExpiresAt > currentTime+10 {
 		return tokenInfo.AccessToken, nil
 	}
 
@@ -780,8 +782,8 @@ func handleChatCompletions(w http.ResponseWriter, r *http.Request) {
 
 	highlightBody, _ := json.Marshal(highlightData)
 
-	log.Printf("ReqData: %s, model: %s, Identifier: %s, accessToken : %s", highlightBody, modelInfo.ID, identifier, accessToken)
-	
+	log.Printf("ReqData: %s, model: %s, Identifier: %s, accessToken : %s", prompt, modelInfo.ID, identifier, accessToken)
+
 	upstreamReq, _ := http.NewRequest("POST", highlightBaseURL+"/api/v1/chat", bytes.NewBuffer(highlightBody))
 	upstreamReq.Header.Set("Content-Type", "application/json")
 	upstreamReq.Header.Set("Accept", "*/*")
