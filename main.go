@@ -470,7 +470,7 @@ func getAccessToken(rt string) (string, error) {
 	tokenInfo, ok := accessTokens.Get(rt)
 	currentTime := time.Now().Unix()
 
-	if ok && tokenInfo.ExpiresAt > currentTime+60 {
+	if ok && tokenInfo.ExpiresAt > currentTime+15660 {
 		return tokenInfo.AccessToken, nil
 	}
 
@@ -780,7 +780,7 @@ func handleChatCompletions(w http.ResponseWriter, r *http.Request) {
 
 	highlightBody, _ := json.Marshal(highlightData)
 
-	log.Printf("ReqData: %s, model: %s, accessToken : %s", highlightBody, modelInfo.ID, accessToken)
+	log.Printf("ReqData: %s, model: %s, Identifier: %s, accessToken : %s", highlightBody, modelInfo.ID, identifier, accessToken)
 	
 	upstreamReq, _ := http.NewRequest("POST", highlightBaseURL+"/api/v1/chat", bytes.NewBuffer(highlightBody))
 	upstreamReq.Header.Set("Content-Type", "application/json")
