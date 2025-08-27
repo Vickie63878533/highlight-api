@@ -780,7 +780,7 @@ func handleChatCompletions(w http.ResponseWriter, r *http.Request) {
 
 	highlightBody, _ := json.Marshal(highlightData)
 
-	log.Printf("ReqData: %s, accessToken : %s", highlightBody, accessToken)
+	log.Printf("ReqData: %s, model: %s, accessToken : %s", highlightBody, modelInfo.ID, accessToken)
 	
 	upstreamReq, _ := http.NewRequest("POST", highlightBaseURL+"/api/v1/chat", bytes.NewBuffer(highlightBody))
 	upstreamReq.Header.Set("Content-Type", "application/json")
