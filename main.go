@@ -767,7 +767,7 @@ func handleChatCompletions(w http.ResponseWriter, r *http.Request) {
 		"prompt":          prompt,
 		"attachedContext": []interface{}{},
 		"modelId":         modelInfo.ID,
-		"additionalTools": reqData.Tools,
+		"additionalTools": tools,
 		"backendPlugins":  []interface{}{},
 		"useMemory":       false,
 		"useKnowledge":    false,
