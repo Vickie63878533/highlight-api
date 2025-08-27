@@ -720,6 +720,11 @@ func handleChatCompletions(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if reqData.Messages == nil || len(reqData.Messages) == 0 {
+		writeErrorResponse(w, "Missing 'messages' in request body", http.StatusBadRequest)
+		return
+	}
+
 	if userInfo.UserID == "" || userInfo.ClientUUID == "" {
 		writeErrorResponse(w, "Invalid authorization token - missing required fields", http.StatusUnauthorized)
 		return
@@ -751,6 +756,11 @@ func handleChatCompletions(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		writeErrorResponse(w, err.Error(), http.StatusInternalServerError)
 		return
+	}
+
+	tools := reqData.Tools
+	if tools == nil {
+		tools = make([]OpenAITool, 0) // 创建一个空的、非 nil 的切片
 	}
 
 	highlightData := map[string]interface{}{
