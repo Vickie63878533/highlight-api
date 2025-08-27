@@ -952,6 +952,7 @@ func main() {
 	}
 }
 
+// --- 内嵌的前端 HTML ---
 const htmlContent = `
 <!DOCTYPE html>
 <html lang="zh-CN">
@@ -1074,7 +1075,7 @@ const htmlContent = `
             font-size: 15px;
             background: #ffffff;
             color: #1d1d1f;
-            transition: border-color 0.15s ease;
+            transition: border-color: 0.15s ease;
         }
 
         .form-input:focus {
@@ -1482,7 +1483,6 @@ const htmlContent = `
                 return;
             }
 
-            // 显示加载状态
             loginBtn.disabled = true;
             loading.style.display = 'block';
             result.style.display = 'none';
@@ -1490,45 +1490,38 @@ const htmlContent = `
             try {
                 const response = await fetch('/login', {
                     method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
+                    headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ code })
                 });
 
                 const data = await response.json();
 
                 if (response.ok) {
-                    // 登录成功，生成 API Key
                     const apiKey = btoa(JSON.stringify(data));
-                    showResult('success', '
-<h4>登录成功</h4>
-<p><strong>用户：</strong>${data.email}</p>
-<p><strong>用户 ID：</strong>${data.user_id}</p>
-
-<div class="api-key-section">
-<div class="api-key-label">您的 API Key</div>
-<div class="api-key-box" id="apiKeyText">${apiKey}</div>
-<button class="copy-btn" onclick="copyApiKey()">复制 API Key</button>
-</div>
-
-<div class="success-message">
-<div class="success-title">设置完成</div>
-<div class="success-content">
-您现在可以使用此 API Key 调用 OpenAI 兼容的接口。<br>
-请在 Authorization header 中添加：<br>
-<code>Authorization: Bearer YOUR_API_KEY</code>
-</div>
-</div>
-');
-
-                    // 自动加载模型列表
+                    showResult('success',
+                        '<h4>登录成功</h4>' +
+                        '<p><strong>用户：</strong>' + data.email + '</p>' +
+                        '<p><strong>用户 ID：</strong>' + data.user_id + '</p>' +
+                        '<div class="api-key-section">' +
+                        '    <div class="api-key-label">您的 API Key</div>' +
+                        '    <div class="api-key-box" id="apiKeyText">' + apiKey + '</div>' +
+                        '    <button class="copy-btn" onclick="copyApiKey()">复制 API Key</button>' +
+                        '</div>' +
+                        '<div class="success-message">' +
+                        '    <div class="success-title">设置完成</div>' +
+                        '    <div class="success-content">' +
+                        '        您现在可以使用此 API Key 调用 OpenAI 兼容的接口。<br>' +
+                        '        请在 Authorization header 中添加：<br>' +
+                        '        <code>Authorization: Bearer YOUR_API_KEY</code>' +
+                        '    </div>' +
+                        '</div>'
+                    );
                     await loadModels(apiKey);
                 } else {
-                    showResult('error', '<h4>登录失败</h4><p>${data.error}</p>');
+                    showResult('error', '<h4>登录失败</h4><p>' + data.error + '</p>');
                 }
             } catch (error) {
-                showResult('error', '<h4>请求失败</h4><p>${error.message}</p>');
+                showResult('error', '<h4>请求失败</h4><p>' + error.message + '</p>');
             } finally {
                 loginBtn.disabled = false;
                 loading.style.display = 'none';
@@ -1538,12 +1531,9 @@ const htmlContent = `
         function showResult(type, content) {
             const result = document.getElementById('result');
             const resultContent = document.getElementById('resultContent');
-
-            result.className = 'result ${type}';
+            result.className = 'result ' + type;
             resultContent.innerHTML = content;
             result.style.display = 'block';
-
-            // 平滑滚动到结果区域
             result.scrollIntoView({ behavior: 'smooth', block: 'center' });
         }
 
@@ -1558,7 +1548,6 @@ const htmlContent = `
                 }, 2000);
             }).catch(err => {
                 console.error('复制失败:', err);
-                // 备用方案：选中文本
                 const selection = window.getSelection();
                 const range = document.createRange();
                 range.selectNodeContents(document.getElementById('apiKeyText'));
@@ -1569,9 +1558,6 @@ const htmlContent = `
 
         async function testApiKey() {
             const apiKeyInput = document.getElementById('apiKeyInput');
-            const testResult = document.getElementById('testResult');
-            const testResultContent = document.getElementById('testResultContent');
-
             const apiKey = apiKeyInput.value.trim();
             if (!apiKey) {
                 showTestResult('error', '<h4>错误</h4><p>请先输入 API Key</p>');
@@ -1580,88 +1566,70 @@ const htmlContent = `
 
             try {
                 const response = await fetch('/v1/models', {
-                    headers: {
-                        'Authorization': 'Bearer ${apiKey}'
-                    }
+                    headers: { 'Authorization': 'Bearer ' + apiKey }
                 });
 
                 if (response.ok) {
                     const data = await response.json();
-                    showTestResult('success', '
-<h4>API Key 有效</h4>
-<p>成功获取到 ${data.data.length} 个可用模型</p>
-');
-
-                    // 自动显示模型列表
+                    showTestResult('success', '<h4>API Key 有效</h4><p>成功获取到 ' + data.data.length + ' 个可用模型</p>');
                     displayModels(data.data);
                 } else {
                     const errorData = await response.json();
-                    showTestResult('error', '<h4>API Key 无效</h4><p>${errorData.error || '验证失败'}</p>');
+                    showTestResult('error', '<h4>API Key 无效</h4><p>' + (errorData.error || '验证失败') + '</p>');
                 }
             } catch (error) {
-                showTestResult('error', '<h4>测试失败</h4><p>${error.message}</p>');
+                showTestResult('error', '<h4>测试失败</h4><p>' + error.message + '</p>');
             }
         }
 
         function showTestResult(type, content) {
             const testResult = document.getElementById('testResult');
             const testResultContent = document.getElementById('testResultContent');
-
-            testResult.className = 'result ${type}';
+            testResult.className = 'result ' + type;
             testResultContent.innerHTML = content;
             testResult.style.display = 'block';
         }
 
         async function loadModels(apiKey) {
             const modelsList = document.getElementById('modelsList');
-
-            // 显示加载状态
-            modelsList.innerHTML = 
-<div style="text-align: center; color: #6e6e73; padding: 16px;">
-<span class="loading-spinner" style="margin-right: 8px;"></span>
-正在加载模型列表...
-</div>
-;
+            modelsList.innerHTML =
+                '<div style="text-align: center; color: #6e6e73; padding: 16px;">' +
+                '    <span class="loading-spinner" style="margin-right: 8px;"></span>' +
+                '    正在加载模型列表...' +
+                '</div>';
 
             try {
                 const response = await fetch('/v1/models', {
-                    headers: {
-                        'Authorization': Bearer ${apiKey}
-                    }
+                    headers: { 'Authorization': 'Bearer ' + apiKey }
                 });
 
                 if (response.ok) {
                     const data = await response.json();
                     displayModels(data.data);
                 } else {
-                    modelsList.innerHTML = 
-<div style="text-align: center; color: #dc2626; padding: 16px;">
-加载失败，请检查 API Key
-</div>
-;
+                    modelsList.innerHTML =
+                        '<div style="text-align: center; color: #dc2626; padding: 16px;">' +
+                        '    加载失败，请检查 API Key' +
+                        '</div>';
                 }
             } catch (error) {
-                modelsList.innerHTML = 
-<div style="text-align: center; color: #dc2626; padding: 16px;">
-网络错误: ${error.message}
-</div>
-;
+                modelsList.innerHTML =
+                    '<div style="text-align: center; color: #dc2626; padding: 16px;">' +
+                    '    网络错误: ' + error.message +
+                    '</div>';
             }
         }
 
         function displayModels(models) {
             const modelsList = document.getElementById('modelsList');
-
             if (!models || models.length === 0) {
-                modelsList.innerHTML = 
-<div style="text-align: center; color: #6e6e73; padding: 16px;">
-未找到可用模型
-</div>
-;
+                modelsList.innerHTML =
+                    '<div style="text-align: center; color: #6e6e73; padding: 16px;">' +
+                    '    未找到可用模型' +
+                    '</div>';
                 return;
             }
 
-            // 按提供商分组模型
             const modelsByProvider = models.reduce((acc, model) => {
                 const provider = model.owned_by || 'Unknown';
                 if (!acc[provider]) acc[provider] = [];
@@ -1670,41 +1638,35 @@ const htmlContent = `
             }, {});
 
             let html = '';
-            for (const [provider, providerModels] of Object.entries(modelsByProvider)) {
-                html += 
-<div style="margin-bottom: 16px;">
-<div style="font-weight: 600; color: #1d1d1f; margin-bottom: 8px; font-size: 14px;">
-${provider} (${providerModels.length} 个模型)
-</div>
-<div class="models-grid">
-;
+            for (const provider in modelsByProvider) {
+                const providerModels = modelsByProvider[provider];
+                html +=
+                    '<div style="margin-bottom: 16px;">' +
+                    '    <div style="font-weight: 600; color: #1d1d1f; margin-bottom: 8px; font-size: 14px;">' +
+                         provider + ' (' + providerModels.length + ' 个模型)' +
+                    '    </div>' +
+                    '    <div class="models-grid">';
 
                 providerModels.forEach(model => {
-                    html += 
-<div class="model-item">
-<div>
-<div class="model-name">${model.id}</div>
-<div class="model-provider">${provider}</div>
-</div>
-<button onclick="copyModelName('${model.id}')" class="btn btn-small copy-btn">
-复制
-</button>
-</div>
-;
+                    html +=
+                        '<div class="model-item">' +
+                        '    <div>' +
+                        '        <div class="model-name">' + model.id + '</div>' +
+                        '        <div class="model-provider">' + provider + '</div>' +
+                        '    </div>' +
+                        "    <button onclick=\"copyModelName('" + model.id + "')\" class=\"btn btn-small copy-btn\">" +
+                        '        复制' +
+                        '    </button>' +
+                        '</div>';
                 });
 
-                html += 
-</div>
-</div>
-;
+                html += '</div></div>';
             }
-
             modelsList.innerHTML = html;
         }
 
         function copyModelName(modelName) {
             navigator.clipboard.writeText(modelName).then(() => {
-                // 临时显示复制成功的反馈
                 const btn = event.target;
                 const originalText = btn.textContent;
                 btn.textContent = '已复制';
@@ -1720,37 +1682,26 @@ ${provider} (${providerModels.length} 个模型)
             });
         }
 
-        // 页面加载时检查是否有API Key
         document.addEventListener('DOMContentLoaded', function() {
             const apiKeyInput = document.getElementById('apiKeyInput');
-
-            // 监听API Key输入变化
             apiKeyInput.addEventListener('input', function() {
                 const apiKey = this.value.trim();
                 if (apiKey) {
-                    // 自动加载模型列表
                     loadModels(apiKey);
                 } else {
                     const modelsList = document.getElementById('modelsList');
-                    modelsList.innerHTML = 
-<div style="text-align: center; color: #6e6e73; padding: 20px;">
-请先获取 API Key 以查看可用模型
-</div>
-;
+                    modelsList.innerHTML =
+                        '<div style="text-align: center; color: #6e6e73; padding: 20px;">' +
+                        '    请先获取 API Key 以查看可用模型' +
+                        '</div>';
                 }
             });
 
-            // 回车键提交
             document.getElementById('codeInput').addEventListener('keypress', function(e) {
-                if (e.key === 'Enter') {
-                    login();
-                }
+                if (e.key === 'Enter') login();
             });
-
             document.getElementById('apiKeyInput').addEventListener('keypress', function(e) {
-                if (e.key === 'Enter') {
-                    testApiKey();
-                }
+                if (e.key === 'Enter') testApiKey();
             });
         });
     </script>
