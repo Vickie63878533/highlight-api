@@ -762,7 +762,7 @@ func handleChatCompletions(w http.ResponseWriter, r *http.Request) {
 		"useMemory":       false,
 		"useKnowledge":    false,
 		"ephemeral":       false,
-		"timezone":        "Asia/Shanghai",
+		"timezone":        "America/New_York",
 	}
 
 	highlightBody, _ := json.Marshal(highlightData)
