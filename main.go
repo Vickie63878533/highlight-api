@@ -449,10 +449,13 @@ func refreshAccessToken(rt string) (string, error) {
 	if err == nil && payload["exp"] != nil {
 		if exp, ok := payload["exp"].(float64); ok {
 			expiresAt = int64(exp)
+			log.Printf("newAccessToken: %s, expiresAt: %d", newAccessToken, expiresAt)
 		}
 	} else {
 		expiresAt = time.Now().Unix() + 3600 // 默认1小时
 	}
+
+	log.Printf("newAccessToken: %s", newAccessToken)
 
 	accessTokens.Set(rt, AccessTokenInfo{
 		AccessToken: newAccessToken,
